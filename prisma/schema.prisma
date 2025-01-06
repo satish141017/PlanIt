@@ -1,0 +1,68 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id         Int        @id @default(autoincrement())
+  username   String     @unique
+  email      String     @unique
+  password   String
+  firstName  String
+  lastName   String
+  role       Role       @default(USER)
+  projects   Project[]  @relation("UserProjects")
+  tasks      Task[]     // Tasks assigned to the user
+}
+
+model Manager {
+  id         Int        @id @default(autoincrement())
+  username   String     @unique
+  email      String     @unique
+  password   String
+  firstName  String
+  lastName   String
+  role       Role       @default(MANAGER)
+  managedProjects Project[] // Projects managed by the manager
+}
+
+model Project {
+  id          Int       @id @default(autoincrement())
+  name        String
+  start       DateTime  @default(now())  // Automatically set current date and time when created
+  end         DateTime
+  tasks       Task[]    @relation("ProjectTasks")
+  users       User[]    @relation("UserProjects")
+  managerId   Int       // ID of the manager
+  manager     Manager   @relation(fields: [managerId], references: [id])  // Manager of the project
+}
+
+model Task {
+  id          Int       @id @default(autoincrement())
+  title       String
+  description String?
+  startDate   DateTime
+  deadline    DateTime
+  priority    Int?      @default(0)
+  projectId   Int?      // Nullable to handle tasks not assigned to a project
+  project     Project?  @relation("ProjectTasks", fields: [projectId], references: [id])
+  userId      Int?      // Nullable to handle tasks not assigned to a user
+  assignedTo  User?     @relation(fields: [userId], references: [id])
+  status      Status    @default(OPEN)
+}
+
+enum Role {
+  MANAGER
+  USER
+}
+
+enum Status {
+  OPEN
+  IN_PROGRESS
+  COMPLETED
+}
