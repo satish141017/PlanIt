@@ -38,21 +38,22 @@ model Project {
   end         DateTime
   tasks       Task[]    @relation("ProjectTasks")
   users       User[]    @relation("UserProjects")
-  managerId   Int       // ID of the manager
-  manager     Manager   @relation(fields: [managerId], references: [id])  // Manager of the project
+  managerUsername   String       // ID of the manager
+  manager     Manager   @relation(fields: [managerUsername], references: [username])  // Manager of the project
+  description String?
 }
 
 model Task {
   id          Int       @id @default(autoincrement())
   title       String
   description String?
-  startDate   DateTime
+  startDate   DateTime @default(now())  
   deadline    DateTime
   priority    Int?      @default(0)
   projectId   Int?      // Nullable to handle tasks not assigned to a project
   project     Project?  @relation("ProjectTasks", fields: [projectId], references: [id])
-  userId      Int?      // Nullable to handle tasks not assigned to a user
-  assignedTo  User?     @relation(fields: [userId], references: [id])
+  username      String      // Nullable to handle tasks not assigned to a user
+  assignedTo  User?     @relation(fields: [username], references: [username])
   status      Status    @default(OPEN)
 }
 
