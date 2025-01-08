@@ -27,8 +27,29 @@ router.get('/',authTokenMiddleware ,  async (req: any, res: any) => {
         res.status(500).json({ error: 'Failed to fetch users.', details: error.message });
     }
 });
+router.post('/signin', async (req: any, res: any) => {
+    try {
+        const { username, password } = req.body;
+        if (!username || !password) {
+            return res.status(400).json({ error: 'Username and password are required.' });
+        }
 
-router.post('/' ,async (req: any, res: any) => {
+        const data = await prisma.user.findUnique({
+            where: { username  , password},
+            select: { id: true, username: true, email: true , firstName : true , lastName : true},
+        });
+        if (!data) {
+            return res.status(404).json({ error: 'User not found.' });
+        }
+
+        const token = signJwt(data);
+        res.json({ ...data, token });
+    } catch (error: any) {
+        console.error('Error logging in:', error);
+        res.status(500).json({ error: 'Failed to login.', details: error.message });
+    }
+});
+router.post('/signup' ,async (req: any, res: any) => {
     try {
         const { username, email, firstName, lastName, password } = req.body;
         if (!username || !email || !password) {
@@ -37,7 +58,7 @@ router.post('/' ,async (req: any, res: any) => {
 
         const data = await prisma.user.create({
             data: { username, email, firstName, lastName, password },
-            select: { id: true, username: true, email: true },
+            select: { id: true, username: true, email: true  , firstName : true , lastName : true  },
         });
         const token = signJwt(data);
         res.json({ ...data, token });
@@ -72,7 +93,7 @@ router.get('/tasks', authTokenMiddleware , async (req: any, res: any) => {
 
 router.post('/task', authTokenMiddleware , async (req: any, res: any) => {
     try {
-        const { username, title, taskDesc, endDate } = req.body;
+        const { username, title, taskDesc, endDate , priority } = req.body;
         if (!username || !title || !endDate) {
             return res.status(400).json({ error: 'Username, title, and endDate are required.' });
         }
@@ -87,6 +108,7 @@ router.post('/task', authTokenMiddleware , async (req: any, res: any) => {
                 title,
                 deadline: deadline.toISOString(),
                 username,
+                priority,
                 description: taskDesc || null,
             },
         });

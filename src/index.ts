@@ -1,8 +1,7 @@
 import express from 'express';
 import managerRoutes from './Routes/manager';
 import userRoutes from './Routes/user';
-import taskRoutes from './Routes/task';
-import projectRoutes from './Routes/project';
+
 
 const app = express();
 const PORT = 3000;
@@ -10,8 +9,7 @@ const PORT = 3000;
 app.use(express.json()); // Middleware to parse JSON bodies
 app.use('/manager', managerRoutes);
 app.use('/users', userRoutes);
-app.use('/tasks', taskRoutes);
-app.use('/projects', projectRoutes);
+
 
 
 app.get('/', (req, res) => {

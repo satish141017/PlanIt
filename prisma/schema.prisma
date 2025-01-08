@@ -28,7 +28,7 @@ model Manager {
   firstName  String
   lastName   String
   role       Role       @default(MANAGER)
-  managedProjects Project[] // Projects managed by the manager
+  managedProjects Project[]   // Projects managed by the manager
 }
 
 model Project {
@@ -36,7 +36,7 @@ model Project {
   name        String
   start       DateTime  @default(now())  // Automatically set current date and time when created
   end         DateTime
-  tasks       Task[]    @relation("ProjectTasks")
+  tasks       Task[]    @relation("ProjectTasks" ) 
   users       User[]    @relation("UserProjects")
   managerUsername   String       // ID of the manager
   manager     Manager   @relation(fields: [managerUsername], references: [username])  // Manager of the project
@@ -51,7 +51,7 @@ model Task {
   deadline    DateTime
   priority    Int?      @default(0)
   projectId   Int?      // Nullable to handle tasks not assigned to a project
-  project     Project?  @relation("ProjectTasks", fields: [projectId], references: [id])
+  project     Project?  @relation("ProjectTasks", fields: [projectId], references: [id] , onDelete: Cascade)   
   username      String      // Nullable to handle tasks not assigned to a user
   assignedTo  User?     @relation(fields: [username], references: [username])
   status      Status    @default(OPEN)

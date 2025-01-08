@@ -1,7 +1,5 @@
 import jwt from 'jsonwebtoken';
-import * as dotenv from 'dotenv';
-dotenv.config();
-
+require('dotenv').config();
 export function signJwt(payload: any) {
 
     if (!process.env.JWT_SECRET) {
@@ -15,7 +13,7 @@ export function authTokenMiddleware(req:any , res : any , next : any) {
     if (!process.env.JWT_SECRET) {
         throw new Error('JWT_SECRET is not defined in the environment variables.');
     }
-    const token = req.headers['authorization'];
+    const token = req.headers['token'];
     if (!token) {
         return res.status(401).json({ message: 'No token provided' });
     }
