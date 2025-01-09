@@ -18,7 +18,7 @@
 16. **DELETE /manager/project**: Delete a project.
 17. **POST /manager/task**: Create a new task.
 18. **DELETE /manager/task/:id**: Delete a task.
-
+19. **PUT /manager/task/:id** : Chnage the details of the task
 ## Endpoints
 
 ### 1. Sign In
@@ -745,7 +745,38 @@ This API allows you to manage managers, users, tasks, and projects. Below are th
   "status": "OPEN"
 }
 ```
+### 11. Update Task
 
+**URL**: `/manager/task/:id`  
+**Method**: `PUT`  
+**Description**: Update a task's details.
+
+**Headers**:
+- `Authorization`: `Bearer your_jwt_token_here`
+
+**Input**:
+```json
+{
+  "title": "Updated task title",
+  "taskDesc": "Updated task description",
+  "endDate": "2023-12-31",
+  "priority": 2
+}
+```
+## output
+```json
+{
+  "id": 1,
+  "title": "Updated task title",
+  "description": "Updated task description",
+  "startDate": "2023-10-10T00:00:00.000Z",
+  "deadline": "2023-12-31T00:00:00.000Z",
+  "priority": 2,
+  "projectId": 1,
+  "username": "john_doe",
+  "status": "OPEN"
+}
+```
 ## Notes
 
 - Ensure you have a valid JWT token for the `Authorization` header.

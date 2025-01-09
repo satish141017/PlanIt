@@ -228,5 +228,38 @@ router.delete('/task/:id', authTokenMiddleware , async (req: any, res: any) => {
     res.status(500).json({ error: 'Failed to delete task.', details: error.message });
   }
 });
+router.put('/task/:id', authTokenMiddleware , async (req: any, res: any) => {
+  try {
+    const id: number = parseInt(req.params.id);
+    const taskNewDetails = req.body;
+    const data: any = {};
+
+    if (taskNewDetails.title) {
+      data.title = taskNewDetails.title;
+    }
+    if (taskNewDetails.taskDesc) {
+      data.description = taskNewDetails.taskDesc;
+    }
+    if (taskNewDetails.endDate) {
+      const endDate = new Date(taskNewDetails.endDate).toISOString();
+      data.deadline = endDate;
+    }
+    if (taskNewDetails.priority !== undefined) {
+      data.priority = taskNewDetails.priority;
+    }
+
+    const task = await prisma.task.update({
+      where: {
+        id,
+      },
+      data: {
+        ...data,
+      },
+    });
+    res.json(task);
+  } catch (error : any) {
+    res.status(500).json({ error: 'Failed to update task.', details: error.message });
+  }
+});
 
 export default router;

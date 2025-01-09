@@ -6,14 +6,14 @@ export function signJwt(payload: any) {
         throw new Error('JWT_SECRET is not defined in the environment variables.');
     }
 
-    return jwt.sign(payload, process.env.JWT_SECRET);
+    return 'Bearer ' +  jwt.sign(payload, process.env.JWT_SECRET);
 }
 
 export function authTokenMiddleware(req:any , res : any , next : any) {
     if (!process.env.JWT_SECRET) {
         throw new Error('JWT_SECRET is not defined in the environment variables.');
     }
-    const token = req.headers['token'];
+    const token = req.headers['authrization'].split(' ')[1];
     if (!token) {
         return res.status(401).json({ message: 'No token provided' });
     }
