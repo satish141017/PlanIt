@@ -1,13 +1,13 @@
 ## List of endpoints
 
-1. **POST /signin**: Sign in a user.
-2. **POST /signup**: Sign up a new user.
-3. **GET /**: Get details of the authenticated user.
-4. **GET /tasks**: Get tasks for the authenticated user.
-5. **GET /task/:id**: Get a task by its ID.
-6. **GET /project**: Get projects for the authenticated user.
-7. **POST /task**: Create a new task.
-8. **PUT /task/:id**: Update a task's status.
+1. **POST /users/signin**: Sign in a user.
+2. **POST /users/signup**: Sign up a new user.
+3. **GET /users/**: Get details of the authenticated user.
+4. **GET /users/tasks**: Get tasks for the authenticated user.
+5. **GET /users/task/:id**: Get a task by its ID.
+6. **GET /users/project**: Get projects for the authenticated user.
+7. **POST /users/task**: Create a new task.
+8. **PUT /users/task/:id**: Update a task's status.
 9. **GET /manager/allUsers**: Get all users whose username starts with the provided name.
 10. **GET /manager**: Get details of the authenticated manager.
 11. **GET /manager/projects**: Get projects managed by the authenticated manager.
@@ -23,7 +23,7 @@
 
 ### 1. Sign In
 
-**URL**: `/signin`  
+**URL**: `/users/signin`  
 **Method**: `POST`  
 **Description**: Sign in a user.
 
@@ -49,7 +49,7 @@
 
 ### 2. Sign Up
 
-**URL**: `/signup`  
+**URL**: `/users/signup`  
 **Method**: `POST`  
 **Description**: Sign up a new user.
 
@@ -78,7 +78,7 @@
 
 ### 3. Get User Details
 
-**URL**: `/`  
+**URL**: `/users/`  
 **Method**: `GET`  
 **Description**: Get details of the authenticated user.
 
@@ -100,7 +100,7 @@
 
 ### 4. Get Tasks
 
-**URL**: `/tasks`  
+**URL**: `/users/tasks`  
 **Method**: `GET`  
 **Description**: Get tasks for the authenticated user.
 
@@ -126,7 +126,7 @@
 
 ### 5. Get Task by ID
 
-**URL**: `/task/:id`  
+**URL**: `/users/task/:id`  
 **Method**: `GET`  
 **Description**: Get a task by its ID.
 
@@ -150,7 +150,7 @@
 
 ### 6. Get Projects
 
-**URL**: `/project`  
+**URL**: `/users/project`  
 **Method**: `GET`  
 **Description**: Get projects for the authenticated user.
 
@@ -173,7 +173,7 @@
 
 ### 7. Create Task
 
-**URL**: `/task`  
+**URL**: `/users/task`  
 **Method**: `POST`  
 **Description**: Create a new task.
 
@@ -208,7 +208,7 @@
 
 ### 8. Update Task
 
-**URL**: `/task/:id`  
+**URL**: `/users/task/:id`  
 **Method**: `PUT`  
 **Description**: Update a task's status.
 
@@ -245,18 +245,13 @@
 
 username
 
- field in the request body should match the authenticated user's username.
-
-satish141017: how should i copy and paste to my readme
-
-GitHub Copilot: To copy and paste the provided code into your README file, you can follow this format:
-
+ 
 ```markdown
 # User API Documentation
 
 This API allows you to manage users, tasks, and projects. Below are the endpoints, their inputs, and expected outputs.
 
-## Endpoints
+## Endpoints after the '`/manager/`'
 
 ### 1. Sign In
 
