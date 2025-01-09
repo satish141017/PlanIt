@@ -1,5 +1,23 @@
 
-
+## List of endpoints
+POST /signin: Sign in a user.
+POST /signup: Sign up a new user.
+GET /: Get details of the authenticated user.
+GET /tasks: Get tasks for the authenticated user.
+GET /task/:id: Get a task by its ID.
+GET /project: Get projects for the authenticated user.
+POST /task: Create a new task.
+PUT /task/:id: Update a task's status.
+GET /manager/allUsers: Get all users whose username starts with the provided name.
+GET /manager: Get details of the authenticated manager.
+GET /manager/projects: Get projects managed by the authenticated manager.
+GET /manager/tasks: Get tasks managed by the authenticated manager.
+POST /manager/signIn: Sign in a manager.
+POST /manager/signUp: Sign up a new manager.
+POST /manager/project: Create a new project.
+DELETE /manager/project: Delete a project.
+POST /manager/task: Create a new task.
+DELETE /manager/task/:id: Delete a task.
 
 ## Endpoints
 
