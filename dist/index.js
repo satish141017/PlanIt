@@ -4,10 +4,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
+const cors_1 = __importDefault(require("cors"));
 const manager_1 = __importDefault(require("./Routes/manager"));
 const user_1 = __importDefault(require("./Routes/user"));
+require('dotenv').config();
 const app = (0, express_1.default)();
-const PORT = 3000;
+app.use((0, cors_1.default)()); // Enable CORS for all routes
 app.use(express_1.default.json()); // Middleware to parse JSON bodies
 app.use('/manager', manager_1.default);
 app.use('/users', user_1.default);
@@ -17,8 +19,8 @@ app.get('/', (req, res) => {
 // Global error handler
 app.use((err, req, res, next) => {
     console.error(err.stack);
-    res.status(500).json({ error: 'Something went wrong!' });
+    res.status(500).send('Something broke!');
 });
-app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
+app.listen(process.env.PORT, () => {
+    console.log(`Server is running on port ${process.env.PORT}`);
 });
