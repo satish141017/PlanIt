@@ -1,0 +1,1 @@
+{"root":["../src/index.ts","../src/routes/manager.ts","../src/routes/user.ts","../src/routes/middleware/authenticatormiddleware.ts"],"version":"5.7.2"}
