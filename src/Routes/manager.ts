@@ -215,5 +215,18 @@ router.post('/task', authTokenMiddleware , async (req: any, res: any) => {
     res.status(500).json({ error: 'Failed to create task.', details: error.message });
   }
 });
+router.delete('/task/:id', authTokenMiddleware , async (req: any, res: any) => {
+  try {
+    const id: number = parseInt(req.params.id);
+    const task = await prisma.task.delete({
+      where: {
+        id,
+      },
+    });
+    res.json(task);
+  } catch (error : any) {
+    res.status(500).json({ error: 'Failed to delete task.', details: error.message });
+  }
+});
 
 export default router;

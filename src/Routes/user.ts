@@ -6,7 +6,7 @@ const prisma = new PrismaClient();
 
 router.get('/',authTokenMiddleware ,  async (req: any, res: any) => {
     try {
-        const username = req.body.username;
+        const username = req.body.username || req.user.username;
         if (!username) {
             return res.status(400).json({ error: "Username is required." });
         }
@@ -77,12 +77,6 @@ router.get('/tasks', authTokenMiddleware , async (req: any, res: any) => {
 
         const data = await prisma.task.findMany({
             where: { username },
-            select: {
-                id: true,
-                title: true,
-                description: true,
-                status: true,
-            },
         });
         res.json(data);
     } catch (error: any) {
@@ -91,6 +85,45 @@ router.get('/tasks', authTokenMiddleware , async (req: any, res: any) => {
     }
 });
 
+router.get('/task/:id', authTokenMiddleware , async (req: any, res: any) => {
+    try {
+        const id = parseInt(req.params.id);
+        if (isNaN(id)) {
+            return res.status(400).json({ error: 'Invalid task ID.' });
+        }
+
+        const task = await prisma.task.findUnique({
+            where: { id },
+        });
+        if (!task) {
+            return res.status(404).json({ error: 'Task not found.' });
+        }
+
+        res.json(task);
+    } catch (error: any) {
+        console.error('Error fetching task:', error);
+        res.status(500).json({ error: 'Failed to fetch task.', details: error.message });
+    }
+});
+router.get('./project' , authTokenMiddleware , async (req: any, res: any) => {
+    try {
+        const username = req.body.username;
+        if (!username) {
+            return res.status(400).json({ error: "Username is required." });
+        }
+
+        const data = await prisma.user.findMany({
+            where: { username },
+            select: {
+                projects: true
+            },
+        });
+        res.json(data);
+    } catch (error: any) {
+        console.error('Error fetching projects:', error);
+        res.status(500).json({ error: 'Failed to fetch projects.', details: error.message });
+    }
+});
 router.post('/task', authTokenMiddleware , async (req: any, res: any) => {
     try {
         const { username, title, taskDesc, endDate , priority } = req.body;
@@ -118,6 +151,26 @@ router.post('/task', authTokenMiddleware , async (req: any, res: any) => {
         res.status(500).json({ error: 'Failed to create task.', details: error.message });
     }
 });
+router.put('/task/:id', authTokenMiddleware , async (req: any, res: any) => {
+    try {
+        const id = parseInt(req.params.id);
+        if (isNaN(id)) {
+            return res.status(400).json({ error: 'Invalid task ID.' });
+        }
+        const status = req.body.status;
 
+        const task = await prisma.task.update({
+            where: { id },
+            data: {
+                status,
+               
+            },
+        });
+        res.json(task);
+    } catch (error: any) {
+        console.error('Error updating task:', error);
+        res.status(500).json({ error: 'Failed to update task.', details: error.message });
+    }
+});
 
 export default router;
