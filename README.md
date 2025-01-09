@@ -1,4 +1,3 @@
-
 ## List of endpoints
 POST /signin: Sign in a user.
 POST /signup: Sign up a new user.
