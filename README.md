@@ -8,12 +8,12 @@
 6. **GET /users/project**: Get projects for the authenticated user.
 7. **POST /users/task**: Create a new task.
 8. **PUT /users/task/:id**: Update a task's status.
+13. **POST /manager/signin**: Sign in a manager.
+14. **POST /manager/signup**: Sign up a new manager.
 9. **GET /manager/allUsers**: Get all users whose username starts with the provided name.
 10. **GET /manager**: Get details of the authenticated manager.
 11. **GET /manager/projects**: Get projects managed by the authenticated manager.
 12. **GET /manager/tasks**: Get tasks managed by the authenticated manager.
-13. **POST /manager/signIn**: Sign in a manager.
-14. **POST /manager/signUp**: Sign up a new manager.
 15. **POST /manager/project**: Create a new project.
 16. **DELETE /manager/project**: Delete a project.
 17. **POST /manager/task**: Create a new task.

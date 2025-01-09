@@ -90,7 +90,7 @@ router.get('/tasks',authTokenMiddleware ,  async (req: any, res: any) => {
     res.status(500).json({ error: 'Failed to fetch tasks.', details: error.message });
   }
 });
-router.post('/signIn', async (req: any, res: any) => {
+router.post('/signin', async (req: any, res: any) => {
   try {
     const username: string = req.body.username;
     const password: string = req.body.password;
@@ -122,7 +122,7 @@ router.post('/signIn', async (req: any, res: any) => {
     res.status(500).json({ error: 'Failed to sign in.', details: error.message });
   }
 });
-router.post('/signUp' , async (req: any, res: any) => {
+router.post('/signup' , async (req: any, res: any) => {
   try {
     const username : string = req.body.username;
     const email : string = req.body.email;
