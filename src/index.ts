@@ -2,9 +2,9 @@ import express from 'express';
 import cors from 'cors';
 import managerRoutes from './Routes/manager';
 import userRoutes from './Routes/user';
-
+require('dotenv').config();
 const app = express();
-const PORT = 3000;
+
 
 app.use(cors()); // Enable CORS for all routes
 app.use(express.json()); // Middleware to parse JSON bodies
@@ -21,6 +21,6 @@ app.use((err: any, req: any, res: any, next: any) => {
   res.status(500).send('Something broke!');
 });
 
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
+app.listen(process.env.PORT, () => {
+  console.log(`Server is running on port ${process.env.PORT}`);
 });
