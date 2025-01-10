@@ -97,7 +97,7 @@ router.get('/tasks', authenticatorMiddleWare_1.authTokenMiddleware, (req, res) =
         res.status(500).json({ error: 'Failed to fetch tasks.', details: error.message });
     }
 }));
-router.post('/signIn', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+router.post('/signin', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const username = req.body.username;
         const password = req.body.password;
@@ -130,7 +130,7 @@ router.post('/signIn', (req, res) => __awaiter(void 0, void 0, void 0, function*
         res.status(500).json({ error: 'Failed to sign in.', details: error.message });
     }
 }));
-router.post('/signUp', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+router.post('/signup', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const username = req.body.username;
         const email = req.body.email;
