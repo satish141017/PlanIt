@@ -23,7 +23,7 @@ router.get('/', authenticatorMiddleWare_1.authTokenMiddleware, (req, res) => __a
         if (!username) {
             return res.status(400).json({ error: "Username is required." });
         }
-        const data = yield prisma.user.findMany({
+        const data = yield prisma.user.findUnique({
             where: { username },
             select: {
                 id: true,
