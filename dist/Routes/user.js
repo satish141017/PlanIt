@@ -19,7 +19,7 @@ const router = express_1.default.Router();
 const prisma = new client_1.PrismaClient();
 router.get('/', authenticatorMiddleWare_1.authTokenMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const username = req.body.username || req.user.username;
+        const username = req.user.username;
         if (!username) {
             return res.status(400).json({ error: "Username is required." });
         }

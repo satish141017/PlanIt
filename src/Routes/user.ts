@@ -6,7 +6,7 @@ const prisma = new PrismaClient();
 
 router.get('/',authTokenMiddleware ,  async (req: any, res: any) => {
     try {
-        const username = req.body.username || req.user.username;
+        const username =  req.user.username;
         if (!username) {
             return res.status(400).json({ error: "Username is required." });
         }
