@@ -193,60 +193,44 @@ router.get('/project', authenticatorMiddleWare_1.authTokenMiddleware, (req, res)
         res.status(500).json({ error: 'Failed to fetch projects.', details: error.message });
     }
 }));
-router.put('/task/:id/update', authenticatorMiddleWare_1.authTokenMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+router.put('project/:projectId/task/:id/update', authenticatorMiddleWare_1.authTokenMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
+        const username = req.user.username;
+        const projectId = parseInt(req.params.projectId);
         const id = parseInt(req.params.id);
-        if (isNaN(id)) {
-            return res.status(400).json({ error: 'Invalid task ID.' });
-        }
-        const existingTask = yield prisma.task.findUnique({
-            where: { id },
-            select: { projectId: true },
+        const isProjectpresent = yield prisma.project.findUnique({
+            where: { id: projectId, manager: req.user.username },
         });
-        if (!existingTask) {
-            return res.status(404).json({ error: 'Task not found.' });
+        if (!isProjectpresent) {
+            return res.status(404).json({ error: 'Project not found. with the given user' });
         }
-        let updateData = {};
-        if (existingTask.projectId === null) {
-            // If projectId is null, allow updating all fields
-            if (req.body.status) {
-                updateData.status = req.body.status;
-            }
-            if (req.body.priority) {
-                updateData.priority = req.body.priority;
-            }
-            if (req.body.title) {
-                updateData.title = req.body.title;
-            }
-            if (req.body.taskDesc) {
-                updateData.description = req.body.taskDesc;
-            }
-            if (req.body.endDate) {
-                updateData.deadline = new Date(req.body.endDate).toISOString();
-            }
+        const data = {};
+        if (isNaN(projectId) || isNaN(id)) {
+            return res.status(400).json({ error: 'Invalid project or task ID.' });
         }
-        else {
-            // If projectId is not null, allow updating only status and priority
-            if (req.body.status) {
-                updateData.status = req.body.status;
-            }
-            if (req.body.priority) {
-                updateData.priority = req.body.priority;
-            }
+        if (req.body.title) {
+            data.title = req.body.title;
         }
-        // Update the task
-        const updatedTask = yield prisma.task.update({
+        if (req.body.taskDesc) {
+            data.description = req.body.taskDesc;
+        }
+        if (req.body.endDate) {
+            data.deadline = new Date(req.body.endDate).toISOString();
+        }
+        if (req.body.priority) {
+            data.priority = req.body.priority;
+        }
+        if (req.body.assignedUser) {
+            data.username = req.body.assignedUser;
+        }
+        const task = yield prisma.task.update({
             where: { id },
-            data: updateData,
+            data,
         });
-        res.json(updatedTask);
     }
     catch (error) {
         console.error('Error updating task:', error);
-        res.status(500).json({
-            error: 'Failed to update task.',
-            details: (error === null || error === void 0 ? void 0 : error.message) || 'Unknown error occurred.',
-        });
+        res.status(500).json({ error: 'Failed to update task.', details: error.message });
     }
 }));
 router.post('/project/:projectId/task/create', authenticatorMiddleWare_1.authTokenMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -318,6 +302,29 @@ router.get('/project/:projectId/tasks', authenticatorMiddleWare_1.authTokenMiddl
     catch (error) {
         console.error('Error fetching tasks:', error);
         res.status(500).json({ error: 'Failed to fetch tasks.', details: error.message });
+    }
+}));
+router.delete('/project/:projectId/task/:id/delete', authenticatorMiddleWare_1.authTokenMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const projectId = parseInt(req.params.projectId);
+        const id = parseInt(req.params.id);
+        if (isNaN(projectId) || isNaN(id)) {
+            return res.status(400).json({ error: 'Invalid project or task ID.' });
+        }
+        const isProjectpresent = yield prisma.project.findUnique({
+            where: { id: projectId, manager: req.user.username },
+        });
+        if (!isProjectpresent) {
+            return res.status(404).json({ error: 'Project not found. with the given user' });
+        }
+        const task = yield prisma.task.delete({
+            where: { id },
+        });
+        res.json(task);
+    }
+    catch (error) {
+        console.error('Error deleting task:', error);
+        res.status(500).json({ error: 'Failed to delete task.', details: error.message });
     }
 }));
 exports.default = router;

@@ -188,65 +188,47 @@ router.get('/project' , authTokenMiddleware , async (req: any, res: any) => {
         res.status(500).json({ error: 'Failed to fetch projects.', details: error.message });
     }
 });
-router.put('/task/:id/update', authTokenMiddleware, async (req: any, res: any) => {
+router.put('project/:projectId/task/:id/update', authTokenMiddleware, async (req: any, res: any) => {
     try {
+       const username = req.user.username;
+        const projectId = parseInt(req.params.projectId);
         const id = parseInt(req.params.id);
-        if (isNaN(id)) {
-            return res.status(400).json({ error: 'Invalid task ID.' });
-        }
+        const isProjectpresent = await prisma.project.findUnique({
 
-        const existingTask = await prisma.task.findUnique({
-            where: { id },
-            select: { projectId: true }, 
+            where: { id: projectId  , manager : req.user.username},
         });
-
-        if (!existingTask) {
-            return res.status(404).json({ error: 'Task not found.' });
+        if(!isProjectpresent){
+            return res.status(404).json({ error: 'Project not found. with the given user' });
         }
-
-        let updateData: any = {};
-
-        if (existingTask.projectId === null) {
-            // If projectId is null, allow updating all fields
-            if (req.body.status) {
-                updateData.status = req.body.status;
-            }
-            if (req.body.priority) {
-                updateData.priority = req.body.priority;
-            }
-            if (req.body.title) {
-                updateData.title = req.body.title;
-            }
-            if (req.body.taskDesc) {
-                updateData.description = req.body.taskDesc;
-            }
-            if (req.body.endDate) {
-                updateData.deadline = new Date(req.body.endDate).toISOString();
-            }
-        } else {
-            // If projectId is not null, allow updating only status and priority
-            if (req.body.status) {
-                updateData.status = req.body.status;
-            }
-            if (req.body.priority) {
-                updateData.priority = req.body.priority;
-            }
+        const data : any = {};
+        if (isNaN(projectId) || isNaN(id)) {
+            return res.status(400).json({ error: 'Invalid project or task ID.' });
         }
-
-        // Update the task
-        const updatedTask = await prisma.task.update({
-            where: { id },
-            data: updateData,
+        if(req.body.title){
+            data.title = req.body.title;
+        }
+        if(req.body.taskDesc){
+            data.description = req.body.taskDesc;
+        }
+        if(req.body.endDate){
+            data.deadline = new Date(req.body.endDate).toISOString();
+        }
+        if(req.body.priority){
+            data.priority = req.body.priority;
+        }
+        if(req.body.assignedUser){
+            data.username = req.body.assignedUser;
+        }
+        const task = await prisma.task.update({
+            where: { id  },
+            data,
         });
-
-        res.json(updatedTask);
     } catch (error: any) {
         console.error('Error updating task:', error);
-        res.status(500).json({
-            error: 'Failed to update task.',
-            details: error?.message || 'Unknown error occurred.',
-        });
+        res.status(500).json({ error: 'Failed to update task.', details: error.message });
     }
+
+   
 });
 router.post('/project/:projectId/task/create', authTokenMiddleware, async (req: any, res: any) => {
     try {
@@ -319,7 +301,29 @@ router.get('/project/:projectId/tasks', authTokenMiddleware, async (req: any, re
         res.status(500).json({ error: 'Failed to fetch tasks.', details: error.message });
     }
 });
+router.delete('/project/:projectId/task/:id/delete', authTokenMiddleware, async (req: any, res: any) => {
+    try {
+        const projectId = parseInt(req.params.projectId);
+        const id = parseInt(req.params.id);
+        if (isNaN(projectId) || isNaN(id)) {
+            return res.status(400).json({ error: 'Invalid project or task ID.' });
+        }
+        const isProjectpresent = await prisma.project.findUnique({
 
+            where: { id: projectId  , manager : req.user.username},
+        });
+        if(!isProjectpresent){
+            return res.status(404).json({ error: 'Project not found. with the given user' });
+        }
+        const task = await prisma.task.delete({
+            where: { id },
+        });
+        res.json(task);
+    } catch (error: any) {
+        console.error('Error deleting task:', error);
+        res.status(500).json({ error: 'Failed to delete task.', details: error.message });
+    }
+});
 
 
 

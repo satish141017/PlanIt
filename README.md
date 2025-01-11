@@ -51,6 +51,7 @@ PlanIt is a task management API built with Express and Prisma. It allows users t
 - `GET /users/project/:projectId`: Fetch a specific project by ID.
 - `GET /users/project/:projectId/tasks`: Fetch tasks associated with a specific project.
 - `POST /users/task/create`: Create a new task for a specific project.
+- `Delete /users/task/:id/delete`: Delete a specific task. if user assigned it.
 
 ### Manager Routes
 
@@ -66,7 +67,8 @@ PlanIt is a task management API built with Express and Prisma. It allows users t
 - `GET /manager/project/:projectId`: Fetch a specific project by ID.
 - `GET /manager/project/:projectId/tasks`: Fetch tasks associated with a specific project.
 - `POST /manager/project/:projectId/task/create`: Create a new task for a specific project.
-
+- `PUT /manager/project/:projectId/task/:id/update`: Update a specific task within a project managed by the logged-in manager.
+- `Delete /manager/project/:projectId/task/:id`: Delete a specific task within a project managed by the logged-in manager.
 ## Middleware
 
 - [authTokenMiddleware](http://_vscodecontentref_/10): Middleware to authenticate JWT tokens.
@@ -594,34 +596,60 @@ This API provides routes to manage users, projects, and tasks for a management s
 
 ---
 
-### `PUT /manager/task/:id/update`
+### `PUT /manager/project/:projectId/task/:id/update`
 
-#### Request:
-- **Headers**: `Authorization: Bearer <token>`
-- **Params**: `id` (task ID)
-- **Body**:
-```json
-{
-  "status": <string>,
-  "priority": <string>,
-  "title": <string>,
-  "taskDesc": <string>,
-  "endDate": <string>
-}
-```
+Update the details of a specific task within a project managed by the logged-in user.
 
-#### Response:
-```json
-{
-  "id": <number>,
-  "status": <string>,
-  "priority": <string>,
-  "title": <string>,
-  "description": <string>,
-  "deadline": <string>,
-  "projectId": <number>
-}
-```
+#### Request
+- **Request Parameters**:
+    - `projectId` (required): The ID of the project the task belongs to.
+    - `id` (required): The ID of the task to be updated.
+
+- **Request Body** (at least one field must be provided for update):
+    - `title`: The new title of the task (optional).
+    - `taskDesc`: The new description of the task (optional).
+    - `endDate`: The new deadline for the task in a valid date format (optional).
+    - `priority`: The new priority of the task (optional).
+    - `assignedUser`: The new user to whom the task will be assigned (optional).
+
+#### Response
+- **Success** (200 OK):
+    ```json
+    {
+        "id": <taskId>,
+        "title": "<updatedTaskTitle>",
+        "description": "<updatedTaskDesc>",
+        "deadline": "<updatedEndDate>",
+        "priority": "<updatedPriority>",
+        "projectId": <projectId>,
+        "username": "<updatedAssignedUser>"
+    }
+    ```
+
+- **Error** (400 Bad Request):
+    - If the project or task ID is invalid:
+    ```json
+    {
+        "error": "Invalid project or task ID."
+    }
+    ```
+
+- **Error** (404 Not Found):
+    - If the project is not found for the logged-in manager:
+    ```json
+    {
+        "error": "Project not found with the given user."
+    }
+    ```
+
+- **Error** (500 Internal Server Error):
+    - If there was an error updating the task:
+    ```json
+    {
+        "error": "Failed to update task.",
+        "details": "<error_message>"
+    }
+    ```
 
 ---
 
@@ -710,6 +738,58 @@ Create a new task for a specific project.
 
 This should cover all the routes and their request/response formats for your API. Let me know if you need further modifications!
 
+
+
+
+
+### `DELETE /manager/project/:projectId/task/:id/delete`
+
+Delete a specific task within a project managed by the logged-in user.
+
+#### Request
+- **Request Parameters**:
+    - `projectId` (required): The ID of the project the task belongs to.
+    - `id` (required): The ID of the task to be deleted.
+
+#### Response
+- **Success** (200 OK):
+    ```json
+    {
+        "id": <taskId>,
+        "title": "<taskTitle>",
+        "description": "<taskDesc>",
+        "deadline": "<taskEndDate>",
+        "priority": "<taskPriority>",
+        "projectId": <projectId>,
+        "username": "<assignedUser>"
+    }
+    ```
+
+- **Error** (400 Bad Request):
+    - If the project or task ID is invalid:
+    ```json
+    {
+        "error": "Invalid project or task ID."
+    }
+    ```
+
+- **Error** (404 Not Found):
+    - If the project is not found for the logged-in manager:
+    ```json
+    {
+        "error": "Project not found with the given user."
+    }
+    ```
+
+- **Error** (500 Internal Server Error):
+    - If there was an error deleting the task:
+    ```json
+    {
+        "error": "Failed to delete task.",
+        "details": "<error_message>"
+    }
+    ```
+```
 
 
 

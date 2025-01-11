@@ -316,6 +316,21 @@ router.post('task/create', authTokenMiddleware, async (req: any, res: any) => {
     }
 });
 
+router.delete('/task/:id/delete', authTokenMiddleware, async (req: any, res: any) => {
+    try {
+        const id = parseInt(req.params.id);
+        if (isNaN(id)) {
+            return res.status(400).json({ error: 'Invalid task ID.' });
+        }
 
+        const task = await prisma.task.delete({
+            where: { id  , projectId : null , username : req.user.username},
+        });
+        res.json(task);
+    } catch (error: any) {
+        console.error('Error deleting task:', error);
+        res.status(500).json({ error: 'Failed to delete task.', details: error.message });
+    }
+});
 
 export default router;
