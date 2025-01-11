@@ -50,6 +50,7 @@ PlanIt is a task management API built with Express and Prisma. It allows users t
 - `PUT /users/task/:id/update`: Update a task.
 - `GET /users/project/:projectId`: Fetch a specific project by ID.
 - `GET /users/project/:projectId/tasks`: Fetch tasks associated with a specific project.
+- `POST /users/task/create`: Create a new task for a specific project.
 
 ### Manager Routes
 
@@ -64,6 +65,7 @@ PlanIt is a task management API built with Express and Prisma. It allows users t
 - `PUT /manager/task/:id/update`: Update a task.
 - `GET /manager/project/:projectId`: Fetch a specific project by ID.
 - `GET /manager/project/:projectId/tasks`: Fetch tasks associated with a specific project.
+- `POST /manager/project/:projectId/task/create`: Create a new task for a specific project.
 
 ## Middleware
 
@@ -364,8 +366,37 @@ Fetch tasks of a specific project by project ID for the logged-in manager.
   ```
 
 ```
+### `POST /user/task/create`
+
+Create a new task for a specific project, assigned to a user.
+
+#### Request
+- **Request Body**:
+    - `title` (required): The title of the task.
+    - `taskDesc` (required): The description of the task.
+    - `endDate` (required): The deadline for the task (in a valid date format).
+    - `priority` (required): The priority level of the task (e.g., low, medium, high).
+    - `projectId` (required): The ID of the project the task is part of.
+
+#### Response
+- **Success** (200 OK):
+    ```json
+    {
+        "id": <taskId>,
+        "title": "<taskTitle>",
+        "description": "<taskDesc>",
+        "deadline": "<endDate>",
+        "priority": "<priority>",
+        "projectId": <projectId>,
+        "username": "<assignedUser>"
+    }
+    ```
+```
 
 
+
+
+-------------------------------------------------------------------------------------------------------
 
 
 
@@ -646,6 +677,36 @@ This API provides routes to manage users, projects, and tasks for a management s
 
 ---
 ```
+
+
+### `POST /manager/project/:projectId/task/create`
+
+Create a new task for a specific project.
+
+#### Request
+- **URL Parameter**:
+    - `projectId` (required): The ID of the project to create the task in.
+
+- **Request Body**:
+    - `title` (required): The title of the task.
+    - `taskDesc` (required): The description of the task.
+    - `endDate` (required): The deadline for the task (in a valid date format).
+    - `priority` (required): The priority level of the task (e.g., low, medium, high).
+    - `assignedUser` (optional): The username of the user to whom the task is assigned.
+
+#### Response
+- **Success** (200 OK):
+    ```json
+    {
+        "id": <taskId>,
+        "title": "<taskTitle>",
+        "description": "<taskDesc>",
+        "deadline": "<endDate>",
+        "priority": "<priority>",
+        "projectId": <projectId>,
+        "username": "<assignedUser>"
+    }
+    ```
 
 This should cover all the routes and their request/response formats for your API. Let me know if you need further modifications!
 

@@ -293,4 +293,28 @@ router.get('/project/:projectId/tasks', authenticatorMiddleWare_1.authTokenMiddl
         res.status(500).json({ error: 'Failed to fetch tasks.', details: error.message });
     }
 }));
+router.post('task/create', authenticatorMiddleWare_1.authTokenMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const username = req.user.username || req.body.username;
+        const { title, taskDesc, endDate, priority, projectId } = req.body;
+        if (!title || !taskDesc || !endDate || !priority || !projectId) {
+            return res.status(400).json({ error: 'Title, description, end date, priority, and project ID are required.' });
+        }
+        const data = yield prisma.task.create({
+            data: {
+                title,
+                description: taskDesc,
+                deadline: new Date(endDate).toISOString(),
+                priority,
+                projectId,
+                username,
+            },
+        });
+        res.json(data);
+    }
+    catch (error) {
+        console.error('Error creating task:', error);
+        res.status(500).json({ error: 'Failed to create task.', details: error.message });
+    }
+}));
 exports.default = router;

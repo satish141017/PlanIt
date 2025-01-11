@@ -248,7 +248,35 @@ router.put('/task/:id/update', authTokenMiddleware, async (req: any, res: any) =
         });
     }
 });
+router.post('/project/:projectId/task/create', authTokenMiddleware, async (req: any, res: any) => {
+    try {
+        const projectId = parseInt(req.params.projectId);
+        if (isNaN(projectId)) {
+            return res.status(400).json({ error: 'Invalid project ID.' });
+        }
 
+        const { title, taskDesc, endDate, priority , assignedUser } = req.body;
+        if (!title || !taskDesc || !endDate || !priority) {
+            return res.status(400).json({ error: 'Title, description, end date, and priority are required.' });
+        }
+
+        const newTask = await prisma.task.create({
+            data: {
+                title,
+                description: taskDesc,
+                deadline: new Date(endDate).toISOString(),
+                priority,
+                projectId,
+                username : assignedUser
+            },
+        });
+
+        res.json(newTask);
+    } catch (error: any) {
+        console.error('Error creating task:', error);
+        res.status(500).json({ error: 'Failed to create task.', details: error.message });
+    }
+});
 router.get('/project/:projectId', authTokenMiddleware, async (req: any, res: any) => {
     try {
         const projectId = parseInt(req.params.projectId);

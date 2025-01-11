@@ -291,7 +291,30 @@ router.get('/project/:projectId/tasks', authTokenMiddleware, async (req: any, re
         res.status(500).json({ error: 'Failed to fetch tasks.', details: error.message });
     }
 });
+router.post('task/create', authTokenMiddleware, async (req: any, res: any) => {
+    try {
+        const username = req.user.username || req.body.username;
+        const { title, taskDesc, endDate, priority, projectId } = req.body;
+        if (!title || !taskDesc || !endDate || !priority || !projectId) {
+            return res.status(400).json({ error: 'Title, description, end date, priority, and project ID are required.' });
+        }
 
+        const data = await prisma.task.create({
+            data: {
+                title,
+                description: taskDesc,
+                deadline: new Date(endDate).toISOString(),
+                priority,
+                projectId,
+                username,
+            },
+        });
+        res.json(data);
+    } catch (error: any) {
+        console.error('Error creating task:', error);
+        res.status(500).json({ error: 'Failed to create task.', details: error.message });
+    }
+});
 
 
 
