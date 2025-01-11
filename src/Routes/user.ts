@@ -11,7 +11,7 @@ router.get('/',authTokenMiddleware ,  async (req: any, res: any) => {
             return res.status(400).json({ error: "Username is required." });
         }
 
-        const data = await prisma.user.findMany({
+        const data = await prisma.user.findUnique({
             where: { username },
             select: {
                 id: true,
