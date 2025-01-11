@@ -40,6 +40,56 @@ router.get('/', authenticatorMiddleWare_1.authTokenMiddleware, (req, res) => __a
         res.status(500).json({ error: 'Failed to fetch users.', details: error.message });
     }
 }));
+router.put('/updatepassword', authenticatorMiddleWare_1.authTokenMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const username = req.user.email;
+        const { oldPassword, newPassword } = req.body;
+        if (!oldPassword || !newPassword) {
+            return res.status(400).json({ error: 'Old password and new password are required.' });
+        }
+        const user = yield prisma.user.findUnique({
+            where: { username, password: oldPassword },
+            select: { password: true },
+        });
+        if (!user) {
+            return res.status(404).json({ error: 'User not found.' });
+        }
+        yield prisma.user.update({
+            where: { username },
+            data: { password: newPassword },
+        });
+        res.json({ message: 'Password updated successfully.' });
+    }
+    catch (error) {
+        console.error('Error updating password:', error);
+        res.status(500).json({ error: 'Failed to update password.', details: error.message });
+    }
+}));
+router.put('/update', authenticatorMiddleWare_1.authTokenMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const username = req.user.email;
+        const userNewDetails = req.body;
+        const data = {};
+        if (userNewDetails.username) {
+            data.username = userNewDetails.username;
+        }
+        if (userNewDetails.firstName) {
+            data.firstName = userNewDetails.firstName;
+        }
+        if (userNewDetails.lastName) {
+            data.lastName = userNewDetails.lastName;
+        }
+        const user = yield prisma.user.update({
+            where: { username },
+            data,
+        });
+        res.json(user);
+    }
+    catch (error) {
+        console.error('Error updating user:', error);
+        res.status(500).json({ error: 'Failed to update user.', details: error.message });
+    }
+}));
 router.post('/signin', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { username, password } = req.body;
@@ -85,8 +135,9 @@ router.get('/tasks', authenticatorMiddleWare_1.authTokenMiddleware, (req, res) =
         if (!username) {
             return res.status(400).json({ error: "Username is required." });
         }
-        const data = yield prisma.task.findMany({
+        const data = yield prisma.user.findUnique({
             where: { username },
+            include: { tasks: true },
         });
         res.json(data);
     }
@@ -97,12 +148,14 @@ router.get('/tasks', authenticatorMiddleWare_1.authTokenMiddleware, (req, res) =
 }));
 router.get('/task/:id', authenticatorMiddleWare_1.authTokenMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
+        const username = req.user.username;
         const id = parseInt(req.params.id);
         if (isNaN(id)) {
             return res.status(400).json({ error: 'Invalid task ID.' });
         }
-        const task = yield prisma.task.findUnique({
-            where: { id },
+        const task = yield prisma.user.findUnique({
+            where: { username },
+            include: { tasks: { where: { id } } },
         });
         if (!task) {
             return res.status(404).json({ error: 'Task not found.' });
@@ -114,7 +167,7 @@ router.get('/task/:id', authenticatorMiddleWare_1.authTokenMiddleware, (req, res
         res.status(500).json({ error: 'Failed to fetch task.', details: error.message });
     }
 }));
-router.get('./project', authenticatorMiddleWare_1.authTokenMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+router.get('/project', authenticatorMiddleWare_1.authTokenMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const username = req.body.username;
         if (!username) {
@@ -122,8 +175,15 @@ router.get('./project', authenticatorMiddleWare_1.authTokenMiddleware, (req, res
         }
         const data = yield prisma.user.findMany({
             where: { username },
-            select: {
-                projects: true
+            include: {
+                projects: {
+                    select: {
+                        id: true,
+                        name: true,
+                        description: true,
+                        end: true,
+                    },
+                },
             },
         });
         res.json(data);
@@ -133,50 +193,104 @@ router.get('./project', authenticatorMiddleWare_1.authTokenMiddleware, (req, res
         res.status(500).json({ error: 'Failed to fetch projects.', details: error.message });
     }
 }));
-router.post('/task', authenticatorMiddleWare_1.authTokenMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        const { username, title, taskDesc, endDate, priority } = req.body;
-        if (!username || !title || !endDate) {
-            return res.status(400).json({ error: 'Username, title, and endDate are required.' });
-        }
-        const deadline = new Date(endDate);
-        if (isNaN(deadline.getTime())) {
-            return res.status(400).json({ error: 'Invalid endDate format.' });
-        }
-        const task = yield prisma.task.create({
-            data: {
-                title,
-                deadline: deadline.toISOString(),
-                username,
-                priority,
-                description: taskDesc || null,
-            },
-        });
-        res.json(task);
-    }
-    catch (error) {
-        console.error('Error creating task:', error);
-        res.status(500).json({ error: 'Failed to create task.', details: error.message });
-    }
-}));
-router.put('/task/:id', authenticatorMiddleWare_1.authTokenMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+router.put('/task/:id/update', authenticatorMiddleWare_1.authTokenMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const id = parseInt(req.params.id);
         if (isNaN(id)) {
             return res.status(400).json({ error: 'Invalid task ID.' });
         }
-        const status = req.body.status;
-        const task = yield prisma.task.update({
+        const existingTask = yield prisma.task.findUnique({
             where: { id },
-            data: {
-                status,
-            },
+            select: { projectId: true },
         });
-        res.json(task);
+        if (!existingTask) {
+            return res.status(404).json({ error: 'Task not found.' });
+        }
+        let updateData = {};
+        if (existingTask.projectId === null) {
+            // If projectId is null, allow updating all fields
+            if (req.body.status) {
+                updateData.status = req.body.status;
+            }
+            if (req.body.priority) {
+                updateData.priority = req.body.priority;
+            }
+            if (req.body.title) {
+                updateData.title = req.body.title;
+            }
+            if (req.body.taskDesc) {
+                updateData.description = req.body.taskDesc;
+            }
+            if (req.body.endDate) {
+                updateData.deadline = new Date(req.body.endDate).toISOString();
+            }
+        }
+        else {
+            // If projectId is not null, allow updating only status and priority
+            if (req.body.status) {
+                updateData.status = req.body.status;
+            }
+            if (req.body.priority) {
+                updateData.priority = req.body.priority;
+            }
+        }
+        // Update the task
+        const updatedTask = yield prisma.task.update({
+            where: { id },
+            data: updateData,
+        });
+        res.json(updatedTask);
     }
     catch (error) {
         console.error('Error updating task:', error);
-        res.status(500).json({ error: 'Failed to update task.', details: error.message });
+        res.status(500).json({
+            error: 'Failed to update task.',
+            details: (error === null || error === void 0 ? void 0 : error.message) || 'Unknown error occurred.',
+        });
+    }
+}));
+router.get('/project/:projectId', authenticatorMiddleWare_1.authTokenMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const projectId = parseInt(req.params.projectId);
+        if (isNaN(projectId)) {
+            return res.status(400).json({ error: 'Invalid project ID.' });
+        }
+        const data = yield prisma.user.findUnique({
+            where: { username: req.user.username },
+            include: {
+                projects: {
+                    where: {
+                        id: projectId,
+                    }
+                }
+            }
+        });
+    }
+    catch (error) {
+        console.error('Error fetching tasks:', error);
+        res.status(500).json({ error: 'Failed to fetch tasks.', details: error.message });
+    }
+}));
+router.get('/project/:projectId/tasks', authenticatorMiddleWare_1.authTokenMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const projectId = parseInt(req.params.projectId);
+        if (isNaN(projectId)) {
+            return res.status(400).json({ error: 'Invalid project ID.' });
+        }
+        const data = yield prisma.user.findUnique({
+            where: { username: req.user.username },
+            include: {
+                tasks: {
+                    where: {
+                        projectId
+                    }
+                }
+            }
+        });
+    }
+    catch (error) {
+        console.error('Error fetching tasks:', error);
+        res.status(500).json({ error: 'Failed to fetch tasks.', details: error.message });
     }
 }));
 exports.default = router;

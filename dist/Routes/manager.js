@@ -17,30 +17,16 @@ const client_1 = require("@prisma/client");
 const authenticatorMiddleWare_1 = require("./middleWare/authenticatorMiddleWare");
 const router = express_1.default.Router();
 const prisma = new client_1.PrismaClient();
-router.get('/allUsers', authenticatorMiddleWare_1.authTokenMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        const name = req.body.name;
-        const data = yield prisma.manager.findMany({
-            where: {
-                username: { startsWith: name },
-                role: 'USER',
-            },
-            select: {
-                username: true,
-            },
-        });
-        res.json(data);
-    }
-    catch (error) {
-        res.status(500).json({ error: 'Failed to fetch users.', details: error.message });
-    }
-}));
 router.get('/', authenticatorMiddleWare_1.authTokenMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const username = req.user.username;
-        const data = yield prisma.manager.findUnique({
+        const username = req.body.username || req.user.username;
+        if (!username) {
+            return res.status(400).json({ error: "Username is required." });
+        }
+        const data = yield prisma.user.findMany({
             where: { username },
             select: {
+                id: true,
                 username: true,
                 email: true,
                 firstName: true,
@@ -50,217 +36,261 @@ router.get('/', authenticatorMiddleWare_1.authTokenMiddleware, (req, res) => __a
         res.json(data);
     }
     catch (error) {
-        res.status(500).json({ error: 'Failed to fetch manager data.', details: error.message });
+        console.error('Error fetching users:', error);
+        res.status(500).json({ error: 'Failed to fetch users.', details: error.message });
     }
 }));
-router.get('/projects', authenticatorMiddleWare_1.authTokenMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+router.put('/updatepassword', authenticatorMiddleWare_1.authTokenMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const username = req.user.username;
-        const data = yield prisma.manager.findUnique({
-            where: { username },
-            include: {
-                managedProjects: {
-                    select: {
-                        name: true,
-                    },
-                },
-            },
+        const username = req.user.email;
+        const { oldPassword, newPassword } = req.body;
+        if (!oldPassword || !newPassword) {
+            return res.status(400).json({ error: 'Old password and new password are required.' });
+        }
+        const user = yield prisma.user.findUnique({
+            where: { username, password: oldPassword },
+            select: { password: true },
         });
-        if (data)
-            res.json(data.managedProjects);
-        else
-            res.json([]);
+        if (!user) {
+            return res.status(404).json({ error: 'User not found.' });
+        }
+        yield prisma.user.update({
+            where: { username },
+            data: { password: newPassword },
+        });
+        res.json({ message: 'Password updated successfully.' });
     }
     catch (error) {
-        res.status(500).json({ error: 'Failed to fetch projects.', details: error.message });
+        console.error('Error updating password:', error);
+        res.status(500).json({ error: 'Failed to update password.', details: error.message });
     }
 }));
-router.get('/tasks', authenticatorMiddleWare_1.authTokenMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+router.put('/update', authenticatorMiddleWare_1.authTokenMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const username = req.user.username;
-        const data = yield prisma.manager.findUnique({
+        const username = req.user.email;
+        const userNewDetails = req.body;
+        const data = {};
+        if (userNewDetails.username) {
+            data.username = userNewDetails.username;
+        }
+        if (userNewDetails.firstName) {
+            data.firstName = userNewDetails.firstName;
+        }
+        if (userNewDetails.lastName) {
+            data.lastName = userNewDetails.lastName;
+        }
+        const user = yield prisma.user.update({
             where: { username },
-            include: {
-                managedProjects: {
-                    select: {
-                        tasks: true,
-                    },
-                },
-            },
+            data,
         });
-        if (data)
-            res.json(data.managedProjects[0].tasks);
-        else
-            res.json([]);
+        res.json(user);
     }
     catch (error) {
-        res.status(500).json({ error: 'Failed to fetch tasks.', details: error.message });
+        console.error('Error updating user:', error);
+        res.status(500).json({ error: 'Failed to update user.', details: error.message });
     }
 }));
 router.post('/signin', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const username = req.body.username;
-        const password = req.body.password;
-        const data = yield prisma.manager.findUnique({
-            where: { username },
-            select: {
-                username: true,
-                email: true,
-                firstName: true,
-                lastName: true,
-                password: true,
-            },
+        const { username, password } = req.body;
+        if (!username || !password) {
+            return res.status(400).json({ error: 'Username and password are required.' });
+        }
+        const data = yield prisma.user.findUnique({
+            where: { username, password },
+            select: { id: true, username: true, email: true, firstName: true, lastName: true },
         });
         if (!data) {
-            return res.status(404).json({ error: 'Manager not found.' });
+            return res.status(404).json({ error: 'User not found.' });
         }
-        if (data.password !== password) {
-            return res.status(401).json({ error: 'Invalid password.' });
-        }
-        const token = (0, authenticatorMiddleWare_1.signJwt)({ username: data.username, email: data.email, firstName: data.firstName, lastName: data.lastName });
-        res.json({
-            username: data.username,
-            email: data.email,
-            firstName: data.firstName,
-            lastName: data.lastName,
-            token,
-        });
+        const token = (0, authenticatorMiddleWare_1.signJwt)(data);
+        res.json(Object.assign(Object.assign({}, data), { token }));
     }
     catch (error) {
-        res.status(500).json({ error: 'Failed to sign in.', details: error.message });
+        console.error('Error logging in:', error);
+        res.status(500).json({ error: 'Failed to login.', details: error.message });
     }
 }));
 router.post('/signup', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const username = req.body.username;
-        const email = req.body.email;
-        const firstName = req.body.firstName;
-        const lastName = req.body.lastName;
-        const password = req.body.password;
-        const data = yield prisma.manager.create({
-            data: {
-                username,
-                email,
-                firstName,
-                lastName,
-                password,
-            },
-            select: {
-                username: true,
-                email: true,
-                firstName: true,
-                lastName: true,
-            },
+        const { username, email, firstName, lastName, password } = req.body;
+        if (!username || !email || !password) {
+            return res.status(400).json({ error: 'Username, email, and password are required.' });
+        }
+        const data = yield prisma.user.create({
+            data: { username, email, firstName, lastName, password },
+            select: { id: true, username: true, email: true, firstName: true, lastName: true },
         });
-        const token = (0, authenticatorMiddleWare_1.signJwt)({ username: data.username, email: data.email, firstName: data.firstName, lastName: data.lastName });
+        const token = (0, authenticatorMiddleWare_1.signJwt)(data);
         res.json(Object.assign(Object.assign({}, data), { token }));
     }
     catch (error) {
-        res.status(500).json({ error: 'Failed to create manager.', details: error.message });
+        console.error('Error creating user:', error);
+        res.status(500).json({ error: 'Failed to create user.', details: error.message });
     }
 }));
-router.post('/project', authenticatorMiddleWare_1.authTokenMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+router.get('/tasks', authenticatorMiddleWare_1.authTokenMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const username = req.body.username;
+        if (!username) {
+            return res.status(400).json({ error: "Username is required." });
+        }
+        const data = yield prisma.user.findUnique({
+            where: { username },
+            include: { tasks: true },
+        });
+        res.json(data);
+    }
+    catch (error) {
+        console.error('Error fetching tasks:', error);
+        res.status(500).json({ error: 'Failed to fetch tasks.', details: error.message });
+    }
+}));
+router.get('/task/:id', authenticatorMiddleWare_1.authTokenMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const username = req.user.username;
-        const project = req.body.projectName;
-        const projectDesc = req.body.projectDesc;
-        const endDate = new Date(req.body.endDate).toISOString(); // Ensure ISO-8601 format
-        const proj = yield prisma.project.create({
-            data: {
-                name: project,
-                end: endDate,
-                managerUsername: username,
-                description: projectDesc,
-            },
+        const id = parseInt(req.params.id);
+        if (isNaN(id)) {
+            return res.status(400).json({ error: 'Invalid task ID.' });
+        }
+        const task = yield prisma.user.findUnique({
+            where: { username },
+            include: { tasks: { where: { id } } },
         });
-        res.json(proj);
-    }
-    catch (error) {
-        res.status(500).json({ error: 'Failed to create project.', details: error.message });
-    }
-}));
-router.delete('/project', authenticatorMiddleWare_1.authTokenMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        const username = req.user.username;
-        const projectId = req.body.projectId;
-        const proj = yield prisma.project.delete({
-            where: {
-                id: projectId,
-            },
-        });
-        res.json(proj);
-    }
-    catch (error) {
-        res.status(500).json({ error: 'Failed to delete project.', details: error.message });
-    }
-}));
-router.post('/task', authenticatorMiddleWare_1.authTokenMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        // const username: string = req.body.username;
-        const username = req.body.username; // this is user username not manager manager will going to come from authenticator
-        const projectId = req.body.projectId;
-        const title = req.body.title;
-        const priority = req.body.priority;
-        const taskDesc = req.body.taskDesc;
-        const deadline = new Date(req.body.endDate).toISOString(); // Ensure ISO-8601 format
-        const task = yield prisma.task.create({
-            data: {
-                title,
-                deadline,
-                priority,
-                username,
-                projectId,
-                description: taskDesc,
-            },
-        });
+        if (!task) {
+            return res.status(404).json({ error: 'Task not found.' });
+        }
         res.json(task);
     }
     catch (error) {
-        res.status(500).json({ error: 'Failed to create task.', details: error.message });
+        console.error('Error fetching task:', error);
+        res.status(500).json({ error: 'Failed to fetch task.', details: error.message });
     }
 }));
-router.delete('/task/:id', authenticatorMiddleWare_1.authTokenMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+router.get('/project', authenticatorMiddleWare_1.authTokenMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const username = req.body.username;
+        if (!username) {
+            return res.status(400).json({ error: "Username is required." });
+        }
+        const data = yield prisma.user.findMany({
+            where: { username },
+            include: {
+                projects: {
+                    select: {
+                        id: true,
+                        name: true,
+                        description: true,
+                        end: true,
+                    },
+                },
+            },
+        });
+        res.json(data);
+    }
+    catch (error) {
+        console.error('Error fetching projects:', error);
+        res.status(500).json({ error: 'Failed to fetch projects.', details: error.message });
+    }
+}));
+router.put('/task/:id/update', authenticatorMiddleWare_1.authTokenMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const id = parseInt(req.params.id);
-        const task = yield prisma.task.delete({
-            where: {
-                id,
-            },
+        if (isNaN(id)) {
+            return res.status(400).json({ error: 'Invalid task ID.' });
+        }
+        const existingTask = yield prisma.task.findUnique({
+            where: { id },
+            select: { projectId: true },
         });
-        res.json(task);
+        if (!existingTask) {
+            return res.status(404).json({ error: 'Task not found.' });
+        }
+        let updateData = {};
+        if (existingTask.projectId === null) {
+            // If projectId is null, allow updating all fields
+            if (req.body.status) {
+                updateData.status = req.body.status;
+            }
+            if (req.body.priority) {
+                updateData.priority = req.body.priority;
+            }
+            if (req.body.title) {
+                updateData.title = req.body.title;
+            }
+            if (req.body.taskDesc) {
+                updateData.description = req.body.taskDesc;
+            }
+            if (req.body.endDate) {
+                updateData.deadline = new Date(req.body.endDate).toISOString();
+            }
+        }
+        else {
+            // If projectId is not null, allow updating only status and priority
+            if (req.body.status) {
+                updateData.status = req.body.status;
+            }
+            if (req.body.priority) {
+                updateData.priority = req.body.priority;
+            }
+        }
+        // Update the task
+        const updatedTask = yield prisma.task.update({
+            where: { id },
+            data: updateData,
+        });
+        res.json(updatedTask);
     }
     catch (error) {
-        res.status(500).json({ error: 'Failed to delete task.', details: error.message });
+        console.error('Error updating task:', error);
+        res.status(500).json({
+            error: 'Failed to update task.',
+            details: (error === null || error === void 0 ? void 0 : error.message) || 'Unknown error occurred.',
+        });
     }
 }));
-router.put('/task/:id', authenticatorMiddleWare_1.authTokenMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+router.get('/project/:projectId', authenticatorMiddleWare_1.authTokenMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const id = parseInt(req.params.id);
-        const taskNewDetails = req.body;
-        const data = {};
-        if (taskNewDetails.title) {
-            data.title = taskNewDetails.title;
+        const projectId = parseInt(req.params.projectId);
+        if (isNaN(projectId)) {
+            return res.status(400).json({ error: 'Invalid project ID.' });
         }
-        if (taskNewDetails.taskDesc) {
-            data.description = taskNewDetails.taskDesc;
-        }
-        if (taskNewDetails.endDate) {
-            const endDate = new Date(taskNewDetails.endDate).toISOString();
-            data.deadline = endDate;
-        }
-        if (taskNewDetails.priority !== undefined) {
-            data.priority = taskNewDetails.priority;
-        }
-        const task = yield prisma.task.update({
-            where: {
-                id,
-            },
-            data: Object.assign({}, data),
+        const data = yield prisma.user.findUnique({
+            where: { username: req.user.username },
+            include: {
+                projects: {
+                    where: {
+                        id: projectId,
+                    }
+                }
+            }
         });
-        res.json(task);
     }
     catch (error) {
-        res.status(500).json({ error: 'Failed to update task.', details: error.message });
+        console.error('Error fetching tasks:', error);
+        res.status(500).json({ error: 'Failed to fetch tasks.', details: error.message });
+    }
+}));
+router.get('/project/:projectId/tasks', authenticatorMiddleWare_1.authTokenMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const projectId = parseInt(req.params.projectId);
+        if (isNaN(projectId)) {
+            return res.status(400).json({ error: 'Invalid project ID.' });
+        }
+        const data = yield prisma.user.findUnique({
+            where: { username: req.user.username },
+            include: {
+                tasks: {
+                    where: {
+                        projectId
+                    }
+                }
+            }
+        });
+    }
+    catch (error) {
+        console.error('Error fetching tasks:', error);
+        res.status(500).json({ error: 'Failed to fetch tasks.', details: error.message });
     }
 }));
 exports.default = router;
