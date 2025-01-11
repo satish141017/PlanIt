@@ -55,20 +55,22 @@ PlanIt is a task management API built with Express and Prisma. It allows users t
 
 ### Manager Routes
 
+### Manager Routes
+
 - `GET /manager`: Fetch manager details.
-- `PUT /manager/updatepassword`: Update manager password.
-- `PUT /manager/update`: Update manager details.
 - `POST /manager/signin`: Sign in a manager.
 - `POST /manager/signup`: Sign up a new manager.
-- `GET /manager/tasks`: Fetch tasks assigned to the manager.
-- `GET /manager/task/:id`: Fetch a specific task by ID.
-- `GET /manager/project`: Fetch projects managed by the manager.
-- `PUT /manager/task/:id/update`: Update a task.
-- `GET /manager/project/:projectId`: Fetch a specific project by ID.
-- `GET /manager/project/:projectId/tasks`: Fetch tasks associated with a specific project.
-- `POST /manager/project/:projectId/task/create`: Create a new task for a specific project.
-- `PUT /manager/project/:projectId/task/:id/update`: Update a specific task within a project managed by the logged-in manager.
-- `Delete /manager/project/:projectId/task/:id`: Delete a specific task within a project managed by the logged-in manager.
+- `GET /manager/allUsers`: Fetch all users managed by the manager.
+- `PUT /manager/updatepassword`: Update manager password.
+- `PUT /manager/update`: Update manager details.
+- `GET /manager/projects`: Fetch projects managed by the manager.
+- `GET /manager/tasks`: Fetch all tasks across all projects managed by the manager.
+- `GET /manager/project/:projectId/tasks`: Fetch tasks for a specific project managed by the manager.
+- `POST /manager/project/create`: Create a new project.
+- `DELETE /manager/project/:projectId/delete`: Delete a specific project managed by the manager.
+- `POST /manager/project/:projectId/task/create`: Create a new task within a specific project.
+- `DELETE /manager/project/:projectId/task/:taskId/delete`: Delete a specific task within a project managed by the manager.
+- `PUT /manager/project/:projectId/task/:id/update`: Update a specific task within a project managed by the manager.
 ## Middleware
 
 - [authTokenMiddleware](http://_vscodecontentref_/10): Middleware to authenticate JWT tokens.
