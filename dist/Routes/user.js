@@ -131,7 +131,7 @@ router.post('/signup', (req, res) => __awaiter(void 0, void 0, void 0, function*
 }));
 router.get('/tasks', authenticatorMiddleWare_1.authTokenMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const username = req.body.username;
+        const username = req.user.username;
         if (!username) {
             return res.status(400).json({ error: "Username is required." });
         }
