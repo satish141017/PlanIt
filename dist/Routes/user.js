@@ -295,9 +295,9 @@ router.get('/project/:projectId/tasks', authenticatorMiddleWare_1.authTokenMiddl
 }));
 router.post('task/create', authenticatorMiddleWare_1.authTokenMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const username = req.user.username || req.body.username;
-        const { title, taskDesc, endDate, priority, projectId } = req.body;
-        if (!title || !taskDesc || !endDate || !priority || !projectId) {
+        const username = req.user.username;
+        const { title, taskDesc, endDate, priority } = req.body;
+        if (!title || !taskDesc || !endDate || !priority) {
             return res.status(400).json({ error: 'Title, description, end date, priority, and project ID are required.' });
         }
         const data = yield prisma.task.create({
@@ -306,7 +306,6 @@ router.post('task/create', authenticatorMiddleWare_1.authTokenMiddleware, (req, 
                 description: taskDesc,
                 deadline: new Date(endDate).toISOString(),
                 priority,
-                projectId,
                 username,
             },
         });

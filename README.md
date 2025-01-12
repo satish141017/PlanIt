@@ -380,7 +380,7 @@ Create a new task for a specific project, assigned to a user.
     - `taskDesc` (required): The description of the task.
     - `endDate` (required): The deadline for the task (in a valid date format).
     - `priority` (required): The priority level of the task (e.g., low, medium, high).
-    - `projectId` (required): The ID of the project the task is part of.
+  
 
 #### Response
 - **Success** (200 OK):
@@ -391,7 +391,7 @@ Create a new task for a specific project, assigned to a user.
         "description": "<taskDesc>",
         "deadline": "<endDate>",
         "priority": "<priority>",
-        "projectId": <projectId>,
+        "projectId": //dont give from the frontend default going to be null because user cnat create a task in project,
         "username": "<assignedUser>"
     }
     ```

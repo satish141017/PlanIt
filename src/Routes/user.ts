@@ -293,19 +293,17 @@ router.get('/project/:projectId/tasks', authTokenMiddleware, async (req: any, re
 });
 router.post('task/create', authTokenMiddleware, async (req: any, res: any) => {
     try {
-        const username = req.user.username || req.body.username;
-        const { title, taskDesc, endDate, priority, projectId } = req.body;
-        if (!title || !taskDesc || !endDate || !priority || !projectId) {
+        const username = req.user.username ;
+        const { title, taskDesc, endDate, priority } = req.body;
+        if (!title || !taskDesc || !endDate || !priority) {
             return res.status(400).json({ error: 'Title, description, end date, priority, and project ID are required.' });
         }
-
         const data = await prisma.task.create({
             data: {
                 title,
                 description: taskDesc,
                 deadline: new Date(endDate).toISOString(),
                 priority,
-                projectId,
                 username,
             },
         });
