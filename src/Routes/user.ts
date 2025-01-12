@@ -130,10 +130,15 @@ router.get('/tasks', authTokenMiddleware , async (req: any, res: any) => {
         }
 
         const data = await prisma.user.findUnique({
-            where: { username  },
-            include: { tasks: true },
+            where: { username },
+            select: {
+                tasks: true
+            }
         });
-        res.json(data);
+        if(!data){
+            return res.status(404).json({ error: 'No tasks found.' });
+        }
+        res.json(data.tasks);
     } catch (error: any) {
         console.error('Error fetching tasks:', error);
         res.status(500).json({ error: 'Failed to fetch tasks.', details: error.message });

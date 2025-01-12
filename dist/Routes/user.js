@@ -137,9 +137,14 @@ router.get('/tasks', authenticatorMiddleWare_1.authTokenMiddleware, (req, res) =
         }
         const data = yield prisma.user.findUnique({
             where: { username },
-            include: { tasks: true },
+            select: {
+                tasks: true
+            }
         });
-        res.json(data);
+        if (!data) {
+            return res.status(404).json({ error: 'No tasks found.' });
+        }
+        res.json(data.tasks);
     }
     catch (error) {
         console.error('Error fetching tasks:', error);
