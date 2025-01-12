@@ -291,7 +291,7 @@ router.get('/project/:projectId/tasks', authTokenMiddleware, async (req: any, re
         res.status(500).json({ error: 'Failed to fetch tasks.', details: error.message });
     }
 });
-router.post('task/create', authTokenMiddleware, async (req: any, res: any) => {
+router.post('/task/create', authTokenMiddleware, async (req: any, res: any) => {
     try {
         const username = req.user.username ;
         const { title, taskDesc, endDate, priority } = req.body;
