@@ -201,6 +201,52 @@ router.post('/project/create', authenticatorMiddleWare_1.authTokenMiddleware, (r
         res.status(500).json({ error: 'Failed to create project.', details: error.message });
     }
 }));
+router.post('/project/:projectId/addUser', authenticatorMiddleWare_1.authTokenMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const username = req.user.username;
+    const projectId = parseInt(req.params.projectId);
+    const present = yield prisma.manager.findUnique({
+        where: { username },
+        include: {
+            managedProjects: {
+                where: { id: projectId },
+            },
+        },
+    });
+    if (!present) {
+        return res.status(404).json({ error: 'Project not found by the given manager.' });
+    }
+    const { user } = req.body;
+    const userPresent = yield prisma.user.findUnique({
+        where: { username: user },
+    });
+    if (!userPresent) {
+        return res.status(404).json({ error: 'User not found.' });
+    }
+    const project = yield prisma.project.update({
+        where: { id: projectId },
+        data: {
+            users: { connect: { username: user } },
+        },
+    });
+    res.json(project);
+}));
+router.get('/project/:projectId/users', authenticatorMiddleWare_1.authTokenMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const username = req.user.username;
+    const projectId = parseInt(req.params.projectId);
+    const present = yield prisma.manager.findUnique({
+        where: { username },
+        include: {
+            managedProjects: {
+                where: { id: projectId },
+                include: { users: true },
+            },
+        },
+    });
+    if (!present) {
+        return res.status(404).json({ error: 'Project not found by the given manager.' });
+    }
+    res.json(present.managedProjects[0].users);
+}));
 router.delete('/project/:projectId/delete', authenticatorMiddleWare_1.authTokenMiddleware, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const username = req.user.username;

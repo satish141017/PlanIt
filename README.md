@@ -71,6 +71,7 @@ PlanIt is a task management API built with Express and Prisma. It allows users t
 - `POST /manager/project/:projectId/task/create`: Create a new task within a specific project.
 - `DELETE /manager/project/:projectId/task/:taskId/delete`: Delete a specific task within a project managed by the manager.
 - `PUT /manager/project/:projectId/task/:id/update`: Update a specific task within a project managed by the manager.
+- `POST /manager/project/:projectId/addUser` : Add a user to a specific project managed by the manager.
 ## Middleware
 
 - [authTokenMiddleware](http://_vscodecontentref_/10): Middleware to authenticate JWT tokens.
@@ -797,7 +798,65 @@ Delete a specific task within a project managed by the logged-in user.
 
 
 
+### Add User to Project
 
+**URL**: `/manager/project/:projectId/addUser`
+
+**Method**: `POST`
+
+**Auth Required**: Yes
+
+**Description**: Adds an existing user to a specific project managed by the logged-in manager.
+
+**URL Parameters**:
+- `projectId` (integer): The ID of the project to which the user will be added.
+
+**Request Body**:
+- `user` (string): The username of the user to be added to the project. (required)
+
+**Responses**:
+
+- **Success**: 
+  - **Code**: `200 OK`
+  - **Content**: The updated project object with the newly added user.
+    ```json
+    {
+      "id": 1,
+      "name": "Project Name",
+      "description": "Project Description",
+      "users": [
+        {
+          "username": "user"
+        }
+      ]
+    }
+    ```
+
+- **Error Responses**:
+  - **Code**: `404 Not Found`
+    - **Content**: 
+      ```json
+      { "error": "Project not found by the given manager." }
+      ```
+    - **Content**: 
+      ```json
+      { "error": "User not found." }
+      ```
+
+  - **Code**: `500 Internal Server Error`
+    - **Content**: 
+      ```json
+      { "error": "Failed to add user to project.", "details": "Error details" }
+      ```
+
+**Example**:
+```sh
+curl -X POST http://localhost:3000/manager/project/1/addUser \
+-H "Authorization: Bearer <your_token>" \
+-H "Content-Type: application/json" \
+-d '{
+  "user": "username"
+}'
 
 ## License
 

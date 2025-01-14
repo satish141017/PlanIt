@@ -192,6 +192,54 @@ router.post('/project/create', authTokenMiddleware, async (req: any, res: any) =
     res.status(500).json({ error: 'Failed to create project.', details: error.message });
   }
 });
+router.post('/project/:projectId/addUser', authTokenMiddleware, async (req: any, res: any) => {
+  const username: string = req.user.username;
+  const projectId: number = parseInt(req.params.projectId);
+  const present = await prisma.manager.findUnique({
+    where: { username },
+    include: {
+      managedProjects: {
+        where: { id: projectId},
+      },
+    },
+  });
+  if(!present){
+    return res.status(404).json({ error: 'Project not found by the given manager.' });
+  }
+  const { user } = req.body;
+  const userPresent = await prisma.user.findUnique({
+    where: { username: user },
+  });
+  if (!userPresent) {
+    return res.status(404).json({ error: 'User not found.' });
+  }
+  const project = await prisma.project.update({
+    where: { id: projectId },
+    data: {
+      users: { connect: { username: user } },
+    },
+  });
+  res.json(project);
+
+});
+router.get('/project/:projectId/users', authTokenMiddleware, async (req: any, res: any) => {
+  const username: string = req.user.username;
+  const projectId: number = parseInt(req.params.projectId);
+  const present = await prisma.manager.findUnique({
+    where: { username },
+    include: {
+      managedProjects: {
+        where: { id: projectId },
+        include: { users: true },
+      },
+    },
+  });
+  if (!present) {
+    return res.status(404).json({ error: 'Project not found by the given manager.' });
+  }
+  res.json(present.managedProjects[0].users);
+});
+
 
 router.delete('/project/:projectId/delete', authTokenMiddleware, async (req: any, res: any) => {
   try {
